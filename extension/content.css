@@ -1,0 +1,11 @@
+::highlight(orthoto-spell) {
+  text-decoration: underline wavy #e5484d;
+  text-decoration-thickness: 1.5px;
+  text-decoration-skip-ink: none;
+}
+
+::highlight(orthoto-grammar) {
+  text-decoration: underline wavy #f5a524;
+  text-decoration-thickness: 1.5px;
+  text-decoration-skip-ink: none;
+}

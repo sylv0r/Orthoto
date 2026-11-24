@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Orthoto</title>
+  <link rel="stylesheet" href="popup.css">
+  <script type="module" src="popup.js"></script>
+</head>
+<body>
+  <header>
+    <strong>Orthoto</strong>
+    <span id="status" aria-live="polite"></span>
+  </header>
+
+  <div class="row">
+    <span>Langue</span>
+    <div class="toggle" role="group" aria-label="Langue">
+      <button type="button" data-lang="auto" title="Détection FR/EN">Auto</button>
+      <button type="button" data-lang="fr">FR</button>
+      <button type="button" data-lang="en">EN</button>
+    </div>
+  </div>
+  <label class="row">
+    <span>Activé</span>
+    <input type="checkbox" id="enabled">
+  </label>
+  <label class="row" id="site-row" hidden>
+    <span>Sur <b id="site"></b></span>
+    <input type="checkbox" id="site-enabled">
+  </label>
+
+  <details id="server-box">
+    <summary>Serveur</summary>
+    <form id="server-form">
+      <label>URL <input id="server" type="url" required placeholder="https://orthoto.example.com"></label>
+      <label>Utilisateur <input id="user" required autocomplete="username"></label>
+      <label>Mot de passe <input id="password" type="password" required autocomplete="current-password"></label>
+      <button type="submit">Enregistrer et tester</button>
+    </form>
+  </details>
+</body>
+</html>
