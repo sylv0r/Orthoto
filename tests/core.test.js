@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildSegments, joinSegments, cycle, countFixes } from '../web/core.js';
+import { buildSegments, joinSegments, cycle, countFixes, shiftMatches, guessLang, languageChunks } from '../web/core.js';
 
 const match = (text, word, values, issueType = 'uncategorized', category = 'CAT_GRAMMAIRE') => ({
   offset: text.indexOf(word),
@@ -74,4 +74,30 @@ test('cycle goes through alternatives, then back to the original', () => {
   assert.equal(joinSegments(segs), text);
   cycle(seg);
   assert.equal(joinSegments(segs), 'Les enfants jouent.');
+});
+
+test('shiftMatches keeps errors aligned while typing', () => {
+  const before = 'des pomme et des poire';
+  const errs = [{ offset: 0, length: 9 }, { offset: 13, length: 9 }];
+  assert.deepEqual(shiftMatches(errs, before, 'Hier des pomme et des poire'), [{ offset: 5, length: 9 }, { offset: 18, length: 9 }]);
+  assert.deepEqual(shiftMatches(errs, before, 'des pommes et des poire'), [{ offset: 14, length: 9 }]);
+  assert.deepEqual(shiftMatches(errs, before, 'des pomme et des poire !'), errs);
+  assert.deepEqual(shiftMatches(errs, before, 'des pomme des poire'), [{ offset: 0, length: 9 }, { offset: 10, length: 9 }]);
+});
+
+test('guessLang tells French from English, ties go to French', () => {
+  assert.equal(guessLang("Je pense que c'est une bonne idee pour nous"), 'fr');
+  assert.equal(guessLang('I think this is a good idea for the team'), 'en');
+  assert.equal(guessLang('Thanks, see you at the café'), 'en');
+  assert.equal(guessLang('Réunion demain'), 'fr');
+  assert.equal(guessLang('ok'), 'fr');
+});
+test('languageChunks checks each language run on its own, lines without signal join their neighbours', () => {
+  const text = 'Hello team,\nthanks for the update.\n\nMerci, je regarde ça demain.\n--\nSylvain';
+  const chunks = languageChunks(text);
+  assert.deepEqual(chunks.map((c) => [c.lang, text.slice(c.start, c.end)]), [
+    ['en', 'Hello team,\nthanks for the update.\n'],
+    ['fr', 'Merci, je regarde ça demain.\n--\nSylvain'],
+  ]);
+  assert.deepEqual(languageChunks('OK'), [{ lang: 'fr', start: 0, end: 2 }]);
 });
