@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orthoto</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <main>
+    <div class="bar">
+      <div class="toggle" role="group" aria-label="Langue">
+        <button type="button" data-lang="fr" aria-pressed="true">FR</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+      <span id="status" aria-live="polite"></span>
+    </div>
+
+    <textarea id="input" autofocus spellcheck="false"
+      placeholder="Colle ton texte ici… Entrée pour corriger, Maj+Entrée pour un saut de ligne."></textarea>
+
+    <div class="bar">
+      <button type="button" id="correct" class="primary">Corriger</button>
+      <button type="button" id="copy" disabled>Copier</button>
+    </div>
+
+    <div id="output" class="box" aria-label="Texte corrigé"></div>
+    <p class="hint">Clic sur une correction : alternative suivante / texte d'origine.</p>
+  </main>
+</body>
+</html>
