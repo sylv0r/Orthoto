@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Orthoto</title>
@@ -13,29 +13,29 @@
   </header>
 
   <div class="row">
-    <span>Langue</span>
-    <div class="toggle" role="group" aria-label="Langue">
-      <button type="button" data-lang="auto" title="Détection FR/EN">Auto</button>
+    <span>Language</span>
+    <div class="toggle" role="group" aria-label="Language">
+      <button type="button" data-lang="auto" title="French/English detection">Auto</button>
       <button type="button" data-lang="fr">FR</button>
       <button type="button" data-lang="en">EN</button>
     </div>
   </div>
   <label class="row">
-    <span>Activé</span>
+    <span>Enabled</span>
     <input type="checkbox" id="enabled">
   </label>
   <label class="row" id="site-row" hidden>
-    <span>Sur <b id="site"></b></span>
+    <span>On <b id="site"></b></span>
     <input type="checkbox" id="site-enabled">
   </label>
 
   <details id="server-box">
-    <summary>Serveur</summary>
+    <summary>Server</summary>
     <form id="server-form">
       <label>URL <input id="server" type="url" required placeholder="https://orthoto.example.com"></label>
-      <label>Utilisateur <input id="user" required autocomplete="username"></label>
-      <label>Mot de passe <input id="password" type="password" required autocomplete="current-password"></label>
-      <button type="submit">Enregistrer et tester</button>
+      <label>Username <input id="user" required autocomplete="username"></label>
+      <label>Password <input id="password" type="password" required autocomplete="current-password"></label>
+      <button type="submit">Save and test</button>
     </form>
   </details>
 </body>

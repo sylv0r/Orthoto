@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,23 +11,23 @@
 <body>
   <main>
     <div class="bar">
-      <div class="toggle" role="group" aria-label="Langue">
+      <div class="toggle" role="group" aria-label="Language">
         <button type="button" data-lang="fr" aria-pressed="true">FR</button>
         <button type="button" data-lang="en" aria-pressed="false">EN</button>
       </div>
       <span id="status" aria-live="polite"></span>
     </div>
 
-    <textarea id="input" autofocus spellcheck="false"
-      placeholder="Colle ton texte ici… Entrée pour corriger, Maj+Entrée pour un saut de ligne."></textarea>
+    <textarea id="input" lang="fr" autofocus spellcheck="false"
+      placeholder="Paste your text here… Enter to correct, Shift+Enter for a new line."></textarea>
 
     <div class="bar">
-      <button type="button" id="correct" class="primary">Corriger</button>
-      <button type="button" id="copy" disabled>Copier</button>
+      <button type="button" id="correct" class="primary">Correct</button>
+      <button type="button" id="copy" disabled>Copy</button>
     </div>
 
-    <div id="output" class="box" aria-label="Texte corrigé"></div>
-    <p class="hint">Clic sur une correction : alternative suivante / texte d'origine.</p>
+    <div id="output" class="box" lang="fr" aria-label="Corrected text"></div>
+    <p class="hint">Click a correction to cycle through the alternatives, then back to the original text.</p>
   </main>
 </body>
 </html>

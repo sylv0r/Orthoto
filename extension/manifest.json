@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Orthoto",
   "version": "0.1.0",
-  "description": "Correcteur d'orthographe et de grammaire FR/EN branché sur ton propre serveur Orthoto.",
+  "description": "French/English spelling and grammar checker backed by your own Orthoto server.",
   "minimum_chrome_version": "105",
   "icons": {
     "16": "icons/icon-16.png",

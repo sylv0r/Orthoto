@@ -45,9 +45,9 @@ async function correct() {
     render();
     const n = countFixes(segments);
     const ms = Math.round(performance.now() - t0);
-    status.textContent = n ? `${n} correction${n > 1 ? 's' : ''} · ${ms} ms` : `Aucune faute ✓ · ${ms} ms`;
+    status.textContent = n ? `${n} correction${n > 1 ? 's' : ''} · ${ms} ms` : `No errors ✓ · ${ms} ms`;
   } catch (err) {
-    if (err.name !== 'AbortError') status.textContent = `Erreur : ${err.message}`;
+    if (err.name !== 'AbortError') status.textContent = `Error: ${err.message}`;
   }
 }
 
@@ -64,7 +64,7 @@ async function copy() {
     document.execCommand('copy');
     tmp.remove();
   }
-  status.textContent = 'Copié ✓';
+  status.textContent = 'Copied ✓';
 }
 
 input.addEventListener('keydown', (e) => {
@@ -86,7 +86,7 @@ output.addEventListener('click', (e) => {
 langButtons.forEach((btn) => btn.addEventListener('click', () => {
   lang = btn.dataset.lang;
   langButtons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-  document.documentElement.lang = lang;
+  input.lang = output.lang = lang;
   if (segments.length) correct();
   input.focus();
 }));

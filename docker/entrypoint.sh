@@ -1,10 +1,10 @@
 #!/bin/sh
 set -eu
 
-AUTH_USER="${AUTH_USER:-moi}"
+AUTH_USER="${AUTH_USER:-admin}"
 if [ -z "${AUTH_PASSWORD:-}" ]; then
   AUTH_PASSWORD="$(head -c 18 /dev/urandom | base64 | tr -d '/+=')"
-  echo "[orthoto] AUTH_PASSWORD non défini, mot de passe généré pour '$AUTH_USER' : $AUTH_PASSWORD"
+  echo "[orthoto] AUTH_PASSWORD not set, generated password for '$AUTH_USER': $AUTH_PASSWORD"
 fi
 printf '%s:%s\n' "$AUTH_USER" "$(printf '%s' "$AUTH_PASSWORD" | mkpasswd -m sha512 -P 0)" > /tmp/htpasswd
 unset AUTH_PASSWORD
@@ -33,7 +33,7 @@ trap 'STOPPING=1; kill -TERM "$JAVA_PID" "$NGINX_PID" 2>/dev/null || true' TERM 
     wget -q -O /dev/null --post-data "language=en-US&text=On day $i I has went to the store and buyed $i apple. Their going to park $i tomorow. Its idea $i. She could of done it $i times. He go to school $i days, these book is mine and she don't like it." http://127.0.0.1:8010/v2/check || true
     i=$((i + 1))
   done
-  echo "[orthoto] prêt"
+  echo "[orthoto] ready"
 ) &
 
 while kill -0 "$JAVA_PID" 2>/dev/null && kill -0 "$NGINX_PID" 2>/dev/null; do
@@ -43,5 +43,5 @@ kill -TERM "$JAVA_PID" "$NGINX_PID" 2>/dev/null || true
 wait "$JAVA_PID" 2>/dev/null || true
 wait "$NGINX_PID" 2>/dev/null || true
 [ "$STOPPING" = 1 ] && exit 0
-echo "[orthoto] un processus s'est arrêté, sortie" >&2
+echo "[orthoto] a process exited, stopping" >&2
 exit 1

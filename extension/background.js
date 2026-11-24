@@ -8,7 +8,7 @@ function setBadgeError(message) {
   badgeError = message;
   chrome.action.setBadgeText({ text: message ? '!' : '' });
   chrome.action.setBadgeBackgroundColor({ color: '#e5484d' });
-  chrome.action.setTitle({ title: message ? `Orthoto : ${message}` : 'Orthoto' });
+  chrome.action.setTitle({ title: message ? `Orthoto: ${message}` : 'Orthoto' });
 }
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {

@@ -16,7 +16,7 @@ function setStatus(text, kind = '') {
 async function testServer() {
   setStatus('…');
   try {
-    setStatus(`connecté · ${await ping(settings)} ms`, 'ok');
+    setStatus(`connected · ${await ping(settings)} ms`, 'ok');
   } catch (err) {
     setStatus(err.message, 'err');
     $('server-box').open = true;

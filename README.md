@@ -1,131 +1,131 @@
 # orthoto
 
-Correcteur d'orthographe et de grammaire **FR / EN**, auto-hébergé, en un seul conteneur Docker.
+Self-hosted **French / English** spelling and grammar checker, in a single Docker container.
 
-Colle ton texte, appuie sur **Entrée**, et la version corrigée s'affiche dessous, prête à copier.
-Aucune reformulation : seules les fautes sont corrigées, les suggestions de style sont ignorées
-et un texte sans faute ressort identique.
+Paste your text, press **Enter**, and the corrected version appears below, ready to copy.
+No rephrasing: only actual errors are fixed, style suggestions are ignored, and a text without
+errors comes back unchanged.
 
-- Moteur : [LanguageTool](https://github.com/languagetool-org/languagetool) 6.8 (LGPL), basé sur
-  des règles, pas sur un LLM.
-- Front : HTML + JS sans framework ni build, environ 10 Ko.
-- Auth : HTTP Basic Auth, la fenêtre login/mot de passe native du navigateur.
-- Image : environ 200 Mo, environ 500 Mo de RAM, prête en environ 2 s et chaude en environ 10 s.
-- Extension Chrome/Edge (environ 20 Ko) qui souligne les fautes dans tous les champs texte, branchée sur
-  le même serveur.
+- Engine: [LanguageTool](https://github.com/languagetool-org/languagetool) 6.8 (LGPL), rule-based,
+  not an LLM.
+- Front-end: plain HTML + JS, no framework, no build step, about 10 KB.
+- Auth: HTTP Basic Auth, the browser's native username/password prompt.
+- Image: about 200 MB, about 500 MB of RAM, ready in about 2 s and warmed up in about 10 s.
+- Chrome/Edge extension (about 20 KB) that underlines errors in every text field, backed by the
+  same server.
 
-## Démarrer
+## Getting started
 
 ```sh
-cp .env.example .env        # puis choisis un vrai mot de passe dans .env
+cp .env.example .env        # then pick a real password in .env
 docker compose up -d --build
 ```
 
-Ouvre ensuite <http://ton-serveur:8080>. Le navigateur demande l'identifiant (`moi` par défaut)
-et le mot de passe. Enregistre-les dans le gestionnaire de mots de passe : la fenêtre sera
-pré-remplie ensuite.
+Then open <http://your-server:8080>. The browser asks for the username (`admin` by default) and
+the password. Save them in your password manager so the prompt is pre-filled next time.
 
-Sans compose :
+Without compose:
 
 ```sh
 docker build -t orthoto .
 docker run -d --name orthoto --restart unless-stopped -p 8080:8080 \
-  -e AUTH_PASSWORD='un-vrai-mot-de-passe' orthoto
+  -e AUTH_PASSWORD='a-real-password' orthoto
 ```
 
-| Variable        | Défaut | Rôle                                                              |
-|-----------------|--------|-------------------------------------------------------------------|
-| `AUTH_USER`     | `moi`  | identifiant Basic Auth                                            |
-| `AUTH_PASSWORD` | aucune | mot de passe ; si absent, un mot de passe aléatoire est affiché dans `docker logs` |
-| `JAVA_XMX`      | `512m` | mémoire max de la JVM LanguageTool                               |
+| Variable        | Default | Purpose                                                                  |
+|-----------------|---------|--------------------------------------------------------------------------|
+| `AUTH_USER`     | `admin` | Basic Auth username                                                      |
+| `AUTH_PASSWORD` | none    | password; if unset, a random one is generated and printed in `docker logs` |
+| `JAVA_XMX`      | `512m`  | maximum heap of the LanguageTool JVM                                     |
 
-> Le conteneur sert du HTTP sur le port 8080. Sur ton réseau local, ça suffit. Pour y accéder
-> depuis l'extérieur, mets-le derrière un proxy HTTPS (Caddy, Traefik, Nginx Proxy Manager, ou un
-> Cloudflare Tunnel) : en HTTP, le mot de passe transite en clair.
+> The container serves plain HTTP on port 8080. That is fine on your local network. To reach it
+> from the internet, put it behind an HTTPS reverse proxy (Caddy, Traefik, Nginx Proxy Manager, or a
+> Cloudflare Tunnel): over HTTP, the password travels in clear text.
 
-## Utilisation
+## Usage
 
-- **FR / EN** : bascule au-dessus du champ (FR par défaut). Changer de langue relance la correction.
-- **Entrée** pour corriger, **Maj+Entrée** pour un saut de ligne.
-- Les corrections sont surlignées en vert. **Clic** sur une correction : alternative suivante,
-  puis texte d'origine. Le pointillé orange signale une faute sans suggestion, laissée telle quelle.
-- **Copier** copie le texte tel qu'il est affiché.
+- **FR / EN**: toggle above the text field (French by default). Switching language re-runs the check.
+- **Enter** to correct, **Shift+Enter** for a new line.
+- Corrections are highlighted in green. **Click** a correction to cycle through the alternatives,
+  then back to the original text. A dotted orange underline flags an error without a suggestion,
+  left as is.
+- **Copy** copies the text as displayed.
 
-## Extension navigateur
+## Browser extension
 
-Elle souligne les fautes pendant la frappe, dans tous les champs texte de toutes les pages :
-`textarea`, `input` texte et éditeurs riches (Gmail, ProseMirror/Tiptap, Lexical, Slate…), y compris
-dans les iframes et le shadow DOM.
+It underlines errors as you type, in every text field of every page: `textarea`, text `input` and
+rich editors (Gmail, ProseMirror/Tiptap, Lexical, Slate…), including inside iframes and shadow DOM.
 
-- Rouge pour l'orthographe, orange pour la grammaire. **Clic** sur un mot souligné : carte de
-  suggestions, puis clic sur une suggestion pour l'appliquer (Ctrl+Z l'annule). **Ignorer** masque
-  la faute pour la session.
-- Une pastille en bas à droite du champ affiche le nombre de fautes ; un clic ouvre la première.
-- La vérification part 500 ms après la dernière frappe. Seul le champ en cours d'édition est
-  vérifié, sans aucun scan de la page.
-- Les suggestions de style ne sont jamais proposées, comme sur le site.
-- **Langue** : Auto (FR/EN détecté par paragraphe), FR ou EN, depuis l'icône de l'extension. On peut
-  aussi la désactiver globalement ou pour un site.
-- Jamais vérifiés : mots de passe, champs de données perso (`autocomplete="name"`, `email`…), éditeurs
-  de code (Monaco, CodeMirror, Ace) et champs marqués `data-gramm="false"`.
+- Red for spelling, orange for grammar. **Click** an underlined word to open the suggestion card,
+  then click a suggestion to apply it (Ctrl+Z undoes it). **Ignore** hides the error for the session.
+- A badge in the bottom-right corner of the field shows the number of errors; clicking it opens the
+  first one.
+- The check runs 500 ms after the last keystroke. Only the field being edited is checked, the page is
+  never scanned.
+- Style suggestions are never offered, as on the website.
+- **Language**: Auto (French/English detected per paragraph), FR or EN, from the extension icon. The
+  extension can also be turned off globally or for a given site.
+- Never checked: passwords, personal-data fields (`autocomplete="name"`, `email`…), code editors
+  (Monaco, CodeMirror, Ace) and fields marked `data-gramm="false"`.
 
-### Installation (Chrome, Edge, Brave… version 105 ou plus)
+### Installation (Chrome, Edge, Brave… version 105 or later)
 
-Pas de store : on l'installe soi-même en mode développeur.
+No store: you install it yourself in developer mode.
 
 ```sh
-npm run build:ext   # → dist/orthoto-extension/ et dist/orthoto-extension-<version>.zip
+npm run build:ext   # → dist/orthoto-extension/ and dist/orthoto-extension-<version>.zip
 ```
 
-1. Ouvre `chrome://extensions` (ou `edge://extensions`) et active le **mode développeur**.
-2. Clique sur **Charger l'extension non empaquetée** et choisis le dossier `dist/orthoto-extension`
-   (ou le dossier obtenu en dézippant le `.zip` sur une autre machine).
-3. La page de réglages s'ouvre : renseigne l'URL du serveur (par exemple `http://ton-serveur:8080`),
-   l'identifiant et le mot de passe, puis **Enregistrer et tester**.
+1. Open `chrome://extensions` (or `edge://extensions`) and turn on **Developer mode**.
+2. Click **Load unpacked** and pick the `dist/orthoto-extension` folder (or the folder obtained by
+   unzipping the `.zip` on another machine).
+3. The settings page opens: enter the server URL (for example `http://your-server:8080`), the
+   username and the password, then **Save and test**.
 
-Pour une mise à jour : refais `npm run build:ext`, puis clique sur ⟳ dans `chrome://extensions`.
+To update it: run `npm run build:ext` again, then click ⟳ in `chrome://extensions`.
 
-Les identifiants sont stockés dans le stockage local de l'extension et envoyés uniquement au serveur
-configuré, en Basic Auth. Les requêtes partent du service worker de l'extension : pas de souci de
-CORS ni de contenu mixte, même avec un serveur en HTTP sur le réseau local.
+Credentials are kept in the extension's local storage and only sent to the configured server, using
+Basic Auth. Requests are made by the extension's service worker: no CORS or mixed-content issue, even
+with a plain-HTTP server on the local network.
 
-Non pris en charge : Firefox (pour l'instant) et Google Docs, qui dessine son texte dans un canvas.
-## Comment c'est rendu rapide et léger
+Not supported: Firefox (for now) and Google Docs, which renders its text in a canvas.
 
-Avec l'image LanguageTool par défaut, le français prend environ 900 ms par requête et l'ensemble
-occupe 1,4 Go de RAM. Les optimisations :
+## How it is made fast and light
 
-- `pipelineCaching=true` (désactivé par défaut) : le pipeline FR n'est plus reconstruit à chaque requête.
-- Cache de résultats par phrase (`cacheSize`) : une phrase déjà vue revient en environ 10 ms.
-- Seuls le FR et l'EN sont chargés. Les dictionnaires et règles des autres langues, ainsi que fastText
-  (131 Mo), sont retirés de l'image.
-- JRE minimal construit avec `jlink` (environ 60 Mo).
-- Pas de keep-alive entre nginx et LanguageTool : son serveur HTTP Java ajoute environ 45 ms sur une
-  connexion réutilisée.
-- Chauffe FR/EN au démarrage, pour que la première vraie requête soit déjà rapide.
+With the stock LanguageTool image, French takes about 900 ms per request and the whole thing uses
+1.4 GB of RAM. The optimizations:
 
-Mesures en local, via nginx et l'auth :
+- `pipelineCaching=true` (off by default): the French pipeline is no longer rebuilt on every request.
+- Per-sentence result cache (`cacheSize`): an already-seen sentence comes back in about 10 ms.
+- Only French and English are loaded. The dictionaries and rules of every other language, as well
+  as fastText (131 MB), are removed from the image.
+- Minimal JRE built with `jlink` (about 60 MB).
+- No keep-alive between nginx and LanguageTool: its Java HTTP server adds about 45 ms on a reused
+  connection.
+- French/English warm-up at startup, so that the first real request is already fast.
 
-| Cas                            | Latence     |
+Local measurements, through nginx and auth:
+
+| Case                           | Latency     |
 |--------------------------------|-------------|
-| FR, texte déjà vu              | ~10–15 ms   |
-| FR, texte nouveau              | ~30–75 ms   |
-| EN                             | ~10–25 ms   |
-| FR, environ 2 500 caractères   | ~55 ms      |
+| French, already-seen text      | ~10–15 ms   |
+| French, new text               | ~30–75 ms   |
+| English                        | ~10–25 ms   |
+| French, about 2,500 characters | ~55 ms      |
 
-Les résultats sont identiques à ceux de l'image LanguageTool complète (vérifié sur un corpus FR/EN).
+Results are identical to those of the full LanguageTool image (checked on a French/English corpus).
 
-## Structure
+## Layout
 
 ```
-Dockerfile              build multi-étapes : LanguageTool allégé → JRE jlink → Alpine + nginx
-docker/entrypoint.sh    mot de passe, lancement de LanguageTool et nginx, chauffe, supervision
-docker/nginx.conf       Basic Auth, fichiers statiques, proxy /v2 → LanguageTool (127.0.0.1:8010)
-docker/*.properties     configuration LanguageTool (cache, langues)
-web/                    front (index.html, style.css, app.js) et core.js, la logique partagée avec l'extension
-extension/              extension MV3 : content.js (champs, soulignement, suggestions), background.js, popup
-scripts/                build de l'extension (npm run build:ext), sans dépendance
-tests/                  tests de la logique de correction (npm test)
+Dockerfile              multi-stage build: stripped LanguageTool → jlink JRE → Alpine + nginx
+docker/entrypoint.sh    password, starts LanguageTool and nginx, warm-up, supervision
+docker/nginx.conf       Basic Auth, static files, /v2 proxy → LanguageTool (127.0.0.1:8010)
+docker/*.properties     LanguageTool configuration (caching, languages)
+web/                    front-end (index.html, style.css, app.js) and core.js, the logic shared with the extension
+extension/              MV3 extension: content.js (fields, underlines, suggestions), background.js, popup
+scripts/                extension build (npm run build:ext), no dependencies
+tests/                  tests of the correction logic (npm test)
 ```
 
 ## Tests

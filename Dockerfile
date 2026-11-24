@@ -46,7 +46,7 @@ COPY docker/entrypoint.sh /entrypoint.sh
 COPY web/ /srv/
 RUN sed -i 's/\r$//' /entrypoint.sh && chmod 755 /entrypoint.sh
 ENV PATH=/opt/jre/bin:$PATH \
-    AUTH_USER=moi \
+    AUTH_USER=admin \
     JAVA_XMX=512m
 USER app
 EXPOSE 8080

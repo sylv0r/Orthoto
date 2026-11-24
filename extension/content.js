@@ -425,7 +425,7 @@
     const count = field.matches.length;
     pill.className = `pill ${field.error ? 'err' : count ? 'bad' : 'ok'}`;
     pill.textContent = field.error ? '!' : count ? String(Math.min(count, 99)) : '✓';
-    pill.title = field.error ? `Orthoto : ${field.error}` : count ? `Orthoto : ${count} faute(s)` : 'Orthoto : aucune faute';
+    pill.title = field.error ? `Orthoto: ${field.error}` : count ? `Orthoto: ${count} error${count > 1 ? 's' : ''}` : 'Orthoto: no errors';
     placePill();
   }
 
@@ -455,7 +455,7 @@
   }
 
   function label(value) {
-    if (value === '') return '(supprimer)';
+    if (value === '') return '(delete)';
     return value.trim() === '' ? '␣' : value;
   }
 
@@ -481,7 +481,7 @@
       }
       card.append(opts);
     }
-    const ignore = h('button', 'ignore', 'Ignorer');
+    const ignore = h('button', 'ignore', 'Ignore');
     ignore.addEventListener('click', () => {
       ignored.add(keyOf(m));
       field?.remove(m);

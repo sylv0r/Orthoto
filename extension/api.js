@@ -8,7 +8,7 @@ function authHeader(s) {
 }
 
 async function request(s, path, init = {}) {
-  if (!s.password) throw new Error('serveur non configuré');
+  if (!s.password) throw new Error('server not configured');
   let res;
   try {
     res = await fetch(baseUrl(s) + path, {
@@ -18,10 +18,10 @@ async function request(s, path, init = {}) {
       cache: 'no-store',
     });
   } catch {
-    throw new Error('serveur injoignable');
+    throw new Error('server unreachable');
   }
-  if (res.status === 401) throw new Error('identifiants refusés');
-  if (!res.ok) throw new Error(`erreur HTTP ${res.status}`);
+  if (res.status === 401) throw new Error('invalid credentials');
+  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
   return res;
 }
 
