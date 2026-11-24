@@ -1,0 +1,13 @@
+services:
+  orthoto:
+    build: .
+    image: orthoto
+    container_name: orthoto
+    ports:
+      - "8080:8080"
+    environment:
+      AUTH_USER: ${AUTH_USER:-moi}
+      AUTH_PASSWORD: ${AUTH_PASSWORD:?définis AUTH_PASSWORD dans .env}
+      JAVA_XMX: ${JAVA_XMX:-512m}
+    mem_limit: 1g
+    restart: unless-stopped
