@@ -71,12 +71,12 @@ rich editors (Gmail, ProseMirror/Tiptap, Lexical, Slate…), including inside if
 
 ### Installation
 
-Not on the stores: download the zip for your browser from the
-[latest release](https://github.com/sylv0r/Orthoto/releases/latest).
+Not on the stores: the zip for each browser sits at the root of this repo, ready to download (no
+build needed).
 
 **Chrome, Edge, Brave… (version 105 or later)**
 
-1. Download [`orthoto-chrome.zip`](https://github.com/sylv0r/Orthoto/releases/latest/download/orthoto-chrome.zip)
+1. Download [`orthoto-chrome.zip`](https://github.com/sylv0r/Orthoto/raw/main/orthoto-chrome.zip)
    and unzip it.
 2. Open `chrome://extensions`, turn on **Developer mode** (top right).
 3. Click **Load unpacked** and pick the unzipped folder. Keep that folder: Chrome loads the extension
@@ -84,7 +84,7 @@ Not on the stores: download the zip for your browser from the
 
 **Firefox, Zen… (version 140 or later)**
 
-1. Download [`orthoto-firefox.zip`](https://github.com/sylv0r/Orthoto/releases/latest/download/orthoto-firefox.zip)
+1. Download [`orthoto-firefox.zip`](https://github.com/sylv0r/Orthoto/raw/main/orthoto-firefox.zip)
    (no need to unzip).
 2. Open `about:debugging#/runtime/this-firefox`.
 3. Click **Load Temporary Add-on…** and pick the zip.
@@ -103,7 +103,8 @@ the popup says Orthoto cannot read pages, click **Allow on all sites**.
 replacing the folder) or load it again in `about:debugging`.
 
 **Build it yourself**: `npm run build:ext` writes `dist/orthoto-extension/` (Chrome),
-`dist/orthoto-extension-firefox/` and the two zips.
+`dist/orthoto-extension-firefox/` and refreshes the two zips at the root of the repo (commit them
+with any change to `extension/` or `web/core.js`).
 
 Credentials are kept in the extension's local storage and only sent to the configured server, using
 Basic Auth. Requests are made by the extension's background script: no CORS or mixed-content issue, even

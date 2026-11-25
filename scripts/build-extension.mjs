@@ -1,8 +1,8 @@
 // Builds the browser extension, no dependencies, Node >= 22:
 //   dist/orthoto-extension/          Chrome/Edge (load it unpacked)
 //   dist/orthoto-extension-firefox/  Firefox (load it from about:debugging)
-// plus a zip of each, attached to GitHub releases under these stable names:
-//   dist/orthoto-chrome.zip, dist/orthoto-firefox.zip
+// plus a zip of each, committed at the root of the repo so anyone can download them:
+//   orthoto-chrome.zip, orthoto-firefox.zip
 import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -47,7 +47,7 @@ for (const target of targets) {
   writeFileSync(join(out, 'core.js'), core);
   writeFileSync(join(out, 'core.classic.js'), core.replace(/^export /gm, ''));
 
-  const zipPath = join(dist, target.zip);
+  const zipPath = join(root, target.zip);
   writeFileSync(zipPath, zip(out));
   console.log(`${relative(root, out)}${sep}\n${relative(root, zipPath)}`);
 }
