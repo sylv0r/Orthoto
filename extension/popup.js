@@ -23,6 +23,12 @@ async function testServer() {
   }
 }
 
+// Firefox lets the user withhold or revoke host access: content scripts then never run.
+const ALL_SITES = { origins: ['<all_urls>'] };
+const renderAccess = async () => { $('access').hidden = await chrome.permissions.contains(ALL_SITES); };
+$('grant').addEventListener('click', () => chrome.permissions.request(ALL_SITES).then(renderAccess));
+renderAccess();
+
 const langButtons = document.querySelectorAll('[data-lang]');
 const renderLang = () => langButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === settings.lang)));
 langButtons.forEach((b) => b.addEventListener('click', () => save({ lang: b.dataset.lang }).then(renderLang)));

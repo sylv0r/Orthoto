@@ -1,5 +1,8 @@
-// Builds the browser extension into dist/orthoto-extension/ (load it unpacked)
-// and dist/orthoto-extension-<version>.zip. No dependencies, Node >= 22.
+// Builds the browser extension, no dependencies, Node >= 22:
+//   dist/orthoto-extension/          Chrome/Edge (load it unpacked)
+//   dist/orthoto-extension-firefox/  Firefox (load it from about:debugging)
+// plus a zip of each, attached to GitHub releases under these stable names:
+//   dist/orthoto-chrome.zip, dist/orthoto-firefox.zip
 import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,22 +10,47 @@ import { crc32, deflateRawSync } from 'node:zlib';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const dist = join(root, 'dist');
-const out = join(dist, 'orthoto-extension');
+const manifest = JSON.parse(readFileSync(join(root, 'extension', 'manifest.json'), 'utf8'));
 
-rmSync(out, { recursive: true, force: true });
-mkdirSync(out, { recursive: true });
-cpSync(join(root, 'extension'), out, { recursive: true, filter: (src) => !src.endsWith('.svg') });
-
-// Shared logic: as an ES module for the service worker and the popup, and as a
+// Shared logic: as an ES module for the background script and the popup, and as a
 // classic script for the content script (content scripts cannot import modules).
 const core = readFileSync(join(root, 'web', 'core.js'), 'utf8');
-writeFileSync(join(out, 'core.js'), core);
-writeFileSync(join(out, 'core.classic.js'), core.replace(/^export /gm, ''));
 
-const { version } = JSON.parse(readFileSync(join(out, 'manifest.json'), 'utf8'));
-const zipPath = join(dist, `orthoto-extension-${version}.zip`);
-writeFileSync(zipPath, zip(out));
-console.log(`${relative(root, out)}${sep}\n${relative(root, zipPath)}`);
+// Firefox has no MV3 service worker: the same module runs as an event page instead.
+// The Custom Highlight API (underlines in rich editors) ships in Firefox 140.
+function firefoxManifest({ minimum_chrome_version, background, ...rest }) {
+  return {
+    ...rest,
+    background: { scripts: [background.service_worker], type: background.type },
+    browser_specific_settings: {
+      gecko: {
+        id: 'orthoto@orthoto.extension',
+        strict_min_version: '140.0',
+        // Text typed in fields is sent to the server configured by the user.
+        data_collection_permissions: { required: ['websiteContent'] },
+      },
+    },
+  };
+}
+
+const targets = [
+  { name: 'orthoto-extension', zip: 'orthoto-chrome.zip', manifest },
+  { name: 'orthoto-extension-firefox', zip: 'orthoto-firefox.zip', manifest: firefoxManifest(manifest) },
+];
+
+for (const target of targets) {
+  const out = join(dist, target.name);
+  rmSync(out, { recursive: true, force: true });
+  mkdirSync(out, { recursive: true });
+  cpSync(join(root, 'extension'), out, { recursive: true, filter: (src) => !src.endsWith('.svg') });
+  writeFileSync(join(out, 'manifest.json'), `${JSON.stringify(target.manifest, null, 2)}\n`);
+  writeFileSync(join(out, 'core.js'), core);
+  writeFileSync(join(out, 'core.classic.js'), core.replace(/^export /gm, ''));
+
+  const zipPath = join(dist, target.zip);
+  writeFileSync(zipPath, zip(out));
+  console.log(`${relative(root, out)}${sep}\n${relative(root, zipPath)}`);
+}
 
 function listFiles(dir) {
   return readdirSync(dir, { withFileTypes: true, recursive: true })

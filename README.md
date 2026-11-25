@@ -11,7 +11,7 @@ errors comes back unchanged.
 - Front-end: plain HTML + JS, no framework, no build step, about 10 KB.
 - Auth: HTTP Basic Auth, the browser's native username/password prompt.
 - Image: about 200 MB, about 500 MB of RAM, ready in about 2 s and warmed up in about 10 s.
-- Chrome/Edge extension (about 20 KB) that underlines errors in every text field, backed by the
+- Chrome/Edge/Firefox extension (about 20 KB) that underlines errors in every text field, backed by the
   same server.
 
 ## Getting started
@@ -68,27 +68,47 @@ rich editors (Gmail, ProseMirror/Tiptap, Lexical, Slate…), including inside if
 - Never checked: passwords, personal-data fields (`autocomplete="name"`, `email`…), code editors
   (Monaco, CodeMirror, Ace) and fields marked `data-gramm="false"`.
 
-### Installation (Chrome, Edge, Brave… version 105 or later)
+### Installation
 
-No store: you install it yourself in developer mode.
+Not on the stores: download the zip for your browser from the
+[latest release](https://github.com/sylv0r/Orthoto/releases/latest).
 
-```sh
-npm run build:ext   # → dist/orthoto-extension/ and dist/orthoto-extension-<version>.zip
-```
+**Chrome, Edge, Brave… (version 105 or later)**
 
-1. Open `chrome://extensions` (or `edge://extensions`) and turn on **Developer mode**.
-2. Click **Load unpacked** and pick the `dist/orthoto-extension` folder (or the folder obtained by
-   unzipping the `.zip` on another machine).
-3. The settings page opens: enter the server URL (for example `http://your-server:8080`), the
-   username and the password, then **Save and test**.
+1. Download [`orthoto-chrome.zip`](https://github.com/sylv0r/Orthoto/releases/latest/download/orthoto-chrome.zip)
+   and unzip it.
+2. Open `chrome://extensions`, turn on **Developer mode** (top right).
+3. Click **Load unpacked** and pick the unzipped folder. Keep that folder: Chrome loads the extension
+   from it.
 
-To update it: run `npm run build:ext` again, then click ⟳ in `chrome://extensions`.
+**Firefox, Zen… (version 140 or later)**
+
+1. Download [`orthoto-firefox.zip`](https://github.com/sylv0r/Orthoto/releases/latest/download/orthoto-firefox.zip)
+   (no need to unzip).
+2. Open `about:debugging#/runtime/this-firefox`.
+3. Click **Load Temporary Add-on…** and pick the zip.
+
+Firefox only installs extensions signed by Mozilla for good, so this one is removed when the browser
+restarts (dragging the zip onto the browser shows "could not be installed because it has not been
+verified"). To keep it, set `xpinstall.signatures.required` to `false` in `about:config` and install
+the zip from the add-ons page (⚙ › **Install Add-on From File…**): this works on Firefox Developer
+Edition, Nightly and some forks, not on regular Firefox.
+
+**Then, on every browser**: the settings page opens. Enter the server URL (for example
+`http://your-server:8080`), the username and the password, then **Save and test**. On Firefox, if
+the popup says Orthoto cannot read pages, click **Allow on all sites**.
+
+**Update**: download the new zip, then click ⟳ on the extension in `chrome://extensions` (after
+replacing the folder) or load it again in `about:debugging`.
+
+**Build it yourself**: `npm run build:ext` writes `dist/orthoto-extension/` (Chrome),
+`dist/orthoto-extension-firefox/` and the two zips.
 
 Credentials are kept in the extension's local storage and only sent to the configured server, using
-Basic Auth. Requests are made by the extension's service worker: no CORS or mixed-content issue, even
+Basic Auth. Requests are made by the extension's background script: no CORS or mixed-content issue, even
 with a plain-HTTP server on the local network.
 
-Not supported: Firefox (for now) and Google Docs, which renders its text in a canvas.
+Not supported: Google Docs, which renders its text in a canvas.
 
 ## How it is made fast and light
 
@@ -123,7 +143,7 @@ docker/entrypoint.sh    password, starts LanguageTool and nginx, warm-up, superv
 docker/nginx.conf       Basic Auth, static files, /v2 proxy → LanguageTool (127.0.0.1:8010)
 docker/*.properties     LanguageTool configuration (caching, languages)
 web/                    front-end (index.html, style.css, app.js) and core.js, the logic shared with the extension
-extension/              MV3 extension: content.js (fields, underlines, suggestions), background.js, popup
+extension/              MV3 extension (Chrome and Firefox): content.js (fields, underlines, suggestions), background.js, popup
 scripts/                extension build (npm run build:ext), no dependencies
 tests/                  tests of the correction logic (npm test)
 ```
