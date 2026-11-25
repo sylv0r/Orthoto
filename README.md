@@ -58,8 +58,9 @@ rich editors (Gmail, ProseMirror/Tiptap, Lexical, Slate…), including inside if
 
 - Red for spelling, orange for grammar. **Click** an underlined word to open the suggestion card,
   then click a suggestion to apply it (Ctrl+Z undoes it). **Ignore** hides the error for the session.
-- A badge in the bottom-right corner of the field shows the number of errors; clicking it opens the
-  first one.
+- A badge in the bottom-right corner of the field shows the number of errors; clicking it opens a
+  panel listing every error with its default suggestion. Apply them one by one, click an error to jump
+  to it in the text, or hit **Fix all** to apply every default suggestion at once.
 - The check runs 500 ms after the last keystroke. Only the field being edited is checked, the page is
   never scanned.
 - Style suggestions are never offered, as on the website.

@@ -40,9 +40,35 @@
     .msg { font-size: 12.5px; color: #55565d; }
     .ignore { margin-top: 6px; padding: 0; border: 0; background: none; color: #6b6b70; cursor: pointer;
       font: 12px system-ui, sans-serif; text-decoration: underline; }
+    .panel { position: fixed; width: 320px; max-width: calc(100vw - 16px); display: flex; flex-direction: column;
+      border-radius: 12px; background: #fff; color: #1d1d1f; font: 14px/1.4 system-ui, sans-serif;
+      pointer-events: auto; overflow: hidden; box-shadow: 0 8px 32px rgb(0 0 0 / .2), 0 0 0 1px rgb(0 0 0 / .06); }
+    .phead { display: flex; align-items: center; gap: 8px; padding: 10px 12px; font-weight: 600;
+      border-bottom: 1px solid rgb(0 0 0 / .08); }
+    .phead .title { flex: 1; }
+    .close { border: 0; background: none; color: #6b6b70; cursor: pointer; font: 18px/1 system-ui, sans-serif;
+      padding: 0 2px; }
+    .list { overflow-y: auto; overscroll-behavior: contain; }
+    .item { display: flex; gap: 8px; padding: 9px 12px; border-bottom: 1px solid rgb(0 0 0 / .06); cursor: pointer; }
+    .item:hover { background: rgb(0 0 0 / .035); }
+    .dot { flex: none; width: 8px; height: 8px; margin-top: 7px; border-radius: 4px; background: var(--c); }
+    .body { flex: 1; min-width: 0; }
+    .fix { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .orig { text-decoration: line-through; color: #8b8d98; overflow-wrap: anywhere; }
+    .arrow { color: #8b8d98; }
+    .item .opt { font-size: 13px; padding: 1px 8px; }
+    .item .msg { margin-top: 2px; }
+    .item .ignore { margin-top: 2px; }
+    .empty { padding: 16px 12px; color: #55565d; text-align: center; }
+    .pfoot { padding: 10px 12px; }
+    .all { width: 100%; font: 600 14px/1.4 system-ui, sans-serif; color: #fff; background: #2563eb; border: 0;
+      border-radius: 8px; padding: 7px 10px; cursor: pointer; }
+    .all:hover { background: #1d4ed8; }
     @media (prefers-color-scheme: dark) {
-      .card { background: #232327; color: #ececf0; }
-      .msg, .ignore { color: #a1a1aa; }
+      .card, .panel { background: #232327; color: #ececf0; }
+      .msg, .ignore, .close, .empty { color: #a1a1aa; }
+      .phead, .item { border-color: rgb(255 255 255 / .08); }
+      .item:hover { background: rgb(255 255 255 / .05); }
     }`;
 
   const listeners = new AbortController();
@@ -52,6 +78,7 @@
   let field = null;
   let ui = null;
   let cardMatch = null;
+  let panelOpen = false;
   let timer = 0;
   let seq = 0;
   let placeQueued = false;
@@ -70,13 +97,14 @@
     const root = host.attachShadow({ mode: 'open' });
     const pill = h('div', 'pill');
     const card = h('div', 'card');
-    pill.hidden = card.hidden = true;
-    root.append(h('style', null, UI_CSS), pill, card);
+    const panel = h('div', 'panel');
+    pill.hidden = card.hidden = panel.hidden = true;
+    root.append(h('style', null, UI_CSS), pill, card, panel);
     document.documentElement.append(host);
     // Keep the focus (and selection) in the edited field when clicking our UI.
-    for (const node of [pill, card]) node.addEventListener('mousedown', (e) => e.preventDefault());
+    for (const node of [pill, card, panel]) node.addEventListener('mousedown', (e) => e.preventDefault());
     pill.addEventListener('click', onPillClick);
-    ui = { host, root, pill, card };
+    ui = { host, root, pill, card, panel };
     return ui;
   }
 
@@ -180,8 +208,20 @@
       }
     }
 
-    remove(m) {
-      this.matches = this.matches.filter((x) => x !== m);
+    // Edits are applied from the end of the text so the earlier offsets stay valid.
+    applyAll(edits) {
+      const sorted = edits.map(({ m, value }) => ({ ...m, value })).sort((a, b) => b.offset - a.offset);
+      let applied = 0;
+      for (const e of sorted) {
+        if (this.el.value.slice(e.offset, e.offset + e.length) !== e.original) continue;
+        this.apply(e, e.value);
+        applied++;
+      }
+      return applied;
+    }
+
+    remove(...ms) {
+      this.matches = this.matches.filter((x) => !ms.includes(x));
       this.render();
     }
 
@@ -332,8 +372,20 @@
       }
     }
 
-    remove(m) {
-      this.matches = this.matches.filter((x) => x !== m);
+    // Ranges are live, but an editor re-rendering its DOM may break them: check each one first.
+    applyAll(edits) {
+      const sorted = [...edits].sort((a, b) => b.m.offset - a.m.offset);
+      let applied = 0;
+      for (const { m, value } of sorted) {
+        if (m.range.collapsed || squash(m.range.toString()) !== squash(m.original)) continue;
+        this.apply(m, value);
+        applied++;
+      }
+      return applied;
+    }
+
+    remove(...ms) {
+      this.matches = this.matches.filter((x) => !ms.includes(x));
       this.paint();
     }
 
@@ -378,6 +430,7 @@
   function deactivate() {
     clearTimeout(timer);
     hideCard();
+    hidePanel();
     field?.destroy();
     field = null;
     if (ui) ui.pill.hidden = true;
@@ -421,11 +474,12 @@
   function refreshPill() {
     const { pill } = getUI();
     pill.hidden = !field?.hasResult;
-    if (pill.hidden) return;
+    if (pill.hidden) return hidePanel();
     const count = field.matches.length;
     pill.className = `pill ${field.error ? 'err' : count ? 'bad' : 'ok'}`;
     pill.textContent = field.error ? '!' : count ? String(Math.min(count, 99)) : '✓';
     pill.title = field.error ? `Orthoto: ${field.error}` : count ? `Orthoto: ${count} error${count > 1 ? 's' : ''}` : 'Orthoto: no errors';
+    if (panelOpen) renderPanel();
     placePill();
   }
 
@@ -437,6 +491,7 @@
     ui.pill.style.visibility = visible ? 'visible' : 'hidden';
     ui.pill.style.left = `${Math.min(box.right, innerWidth) - size - 6}px`;
     ui.pill.style.top = `${Math.min(box.bottom, innerHeight) - size - 6}px`;
+    placePanel();
   }
 
   function onPillClick() {
@@ -445,13 +500,111 @@
       chrome.runtime.sendMessage({ type: 'openOptions' }).catch(() => {});
       return;
     }
-    const m = field.matches[0];
-    if (!m) return;
+    if (panelOpen) return hidePanel();
+    hideCard();
+    panelOpen = true;
+    renderPanel();
+    placePill();
+  }
+
+  // ---- Panel listing every error of the field ------------------------------
+  function openMatch(m) {
+    hidePanel();
     field.reveal(m);
     requestAnimationFrame(() => {
       field?.place();
       if (field?.matches.includes(m)) showCard(m);
     });
+  }
+
+  function afterEdit() {
+    refreshPill();
+    scheduleCheck(DEBOUNCE_MS);
+  }
+
+  function fixAll() {
+    if (!field) return;
+    const edits = field.matches.filter((m) => m.options.length).map((m) => ({ m, value: m.options[0] }));
+    hidePanel();
+    if (!edits.length) return;
+    field.applyAll(edits);
+    // Editors applying the change themselves (Slate...) may not fire an input event.
+    field.remove(...edits.map((e) => e.m));
+    afterEdit();
+  }
+
+  function renderPanel() {
+    const { panel } = getUI();
+    if (!field || field.error) return hidePanel();
+    const { matches } = field;
+    const fixable = matches.filter((m) => m.options.length).length;
+    const head = h('div', 'phead');
+    head.append(h('span', 'title', matches.length ? `${matches.length} error${matches.length > 1 ? 's' : ''}` : 'Orthoto'));
+    const close = h('button', 'close', '×');
+    close.title = 'Close';
+    close.addEventListener('click', hidePanel);
+    head.append(close);
+    const list = h('div', 'list');
+    if (!matches.length) list.append(h('div', 'empty', 'No errors, nice work ✨'));
+    for (const m of matches) {
+      const item = h('div', `item ${m.kind}`);
+      const body = h('div', 'body');
+      const fix = h('div', 'fix');
+      fix.append(h('span', 'orig', m.original));
+      if (m.options.length) {
+        fix.append(h('span', 'arrow', '→'));
+        const button = h('button', 'opt', label(m.options[0]));
+        button.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (!field) return;
+          field.apply(m, m.options[0]);
+          field.remove(m);
+          afterEdit();
+        });
+        fix.append(button);
+      }
+      const ignore = h('button', 'ignore', 'Ignore');
+      ignore.addEventListener('click', (e) => {
+        e.stopPropagation();
+        ignored.add(keyOf(m));
+        field?.remove(m);
+        refreshPill();
+      });
+      body.append(fix, h('div', 'msg', m.message), ignore);
+      item.append(h('span', 'dot'), body);
+      item.addEventListener('click', () => openMatch(m));
+      list.append(item);
+    }
+    const children = [head, list];
+    if (fixable) {
+      const foot = h('div', 'pfoot');
+      const all = h('button', 'all', fixable > 1 ? `Fix all (${fixable})` : 'Fix');
+      all.addEventListener('click', fixAll);
+      foot.append(all);
+      children.push(foot);
+    }
+    panel.replaceChildren(...children);
+    panel.hidden = false;
+  }
+
+  // Anchored to the pill, above it when there is room, right edges aligned.
+  function placePanel() {
+    if (!ui || ui.panel.hidden) return;
+    const { pill, panel } = ui;
+    const p = pill.getBoundingClientRect();
+    const below = innerHeight - p.bottom - 14;
+    const above = p.top - 14;
+    const up = above >= Math.min(320, below);
+    panel.style.maxHeight = `${Math.max(160, Math.min(420, up ? above : below))}px`;
+    const w = panel.offsetWidth;
+    const ht = panel.offsetHeight;
+    panel.style.left = `${Math.max(8, Math.min(p.right - w, innerWidth - w - 8))}px`;
+    panel.style.top = `${up ? Math.max(8, p.top - ht - 6) : p.bottom + 6}px`;
+  }
+
+  function hidePanel() {
+    panelOpen = false;
+    if (ui) ui.panel.hidden = true;
   }
 
   function label(value) {
@@ -538,6 +691,7 @@
     if (!field) return;
     const path = e.composedPath();
     if (ui && path.includes(ui.host)) return;
+    hidePanel();
     if (!path.includes(field.el)) return hideCard();
     setTimeout(() => {
       const m = field?.matchAtCaret();
@@ -547,9 +701,10 @@
   }
 
   function onKeyDown(e) {
-    if (e.key === 'Escape' && cardMatch) {
+    if (e.key === 'Escape' && (cardMatch || panelOpen)) {
       e.stopPropagation();
       hideCard();
+      hidePanel();
     }
   }
 
